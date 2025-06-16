@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: kidega-mongo
+    restart: always
+    ports:
+      - "27018:27017"   # Changed host port to 27018
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build: .
+    container_name: kidega-backend
+    restart: always
+    ports:
+      - "5001:5001"
+    environment:
+      - MONGODB_URI=mongodb://mongo:27017/kidega-apartments
+      - JWT_SECRET=your_jwt_secret_here
+      - REDIS_HOST=redis-cache  # Add this line
+    depends_on:
+      - mongo
+      - redis-cache  # Add this dependency
+    volumes:
+      - .:/app
+
+  redis-cache:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - default
+
+volumes:
+  mongo-data:
